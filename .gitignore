@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# virtual env
+.venv/
+__pycache__/
+*.pyc
+
+# local data
+seen_items.json
+agent.log
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+#.vscode/
