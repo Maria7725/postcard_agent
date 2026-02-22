@@ -1,25 +1,34 @@
 from ebay_client import search_postcards
 from filters import is_interesting
 from storage import load_seen_ids, save_seen_ids
-from notifier import notify  # we’ll update notifier next
+from notifier import notify
 from config import KEYWORDS, MIN_PRICE, MAX_PRICE
 from email_notifier import send_email
 
-TEST_EMAIL_ALREADY_SEEN = False   # change to true if want to get email with already seen results
+TEST_EMAIL_ALREADY_SEEN = False
+
 
 def main():
     print("Postcard agent starting...")
 
     seen_ids = load_seen_ids()
 
-    # broad search; filter locally
-    # query = "postcard (" + "OR ".join(KEYWORDS) +")"  # eBay treats this as a broader query
-    query = "OR".join(KEYWORDS)
-    items = search_postcards(query, limit=50)
+    # 1) Run one search per keyword exactly as written in config.py
+    queries = [kw.strip() for kw in KEYWORDS if kw.strip()]
+    print("Queries to run:")
+    for q in queries:
+        print(" -", q)
 
-    print("Fetched from eBay:", len(items))
-    if items:
-        print("First title:", items[0]["title"])
+    # 2) Aggregate and deduplicate results by item id
+    aggregated_by_id = {}
+    for q in queries:
+        items = search_postcards(q, limit=50)
+        print(f"Fetched from eBay for '{q}': {len(items)}")
+        for item in items:
+            aggregated_by_id[item["id"]] = item
+
+    items = list(aggregated_by_id.values())
+    print("Total unique fetched items:", len(items))
 
     new_matches = []
     seen_matches = []
@@ -29,7 +38,6 @@ def main():
 
     for item in items:
         if not is_interesting(item, KEYWORDS, MIN_PRICE, MAX_PRICE):
-            #debug: show a few rejected titles
             print("Rejected:", item["title"])
             continue
 
@@ -37,9 +45,8 @@ def main():
             seen_matches.append(item)
         else:
             new_matches.append(item)
-            seen_ids.add(item["id"])  # mark as seen after first time
+            seen_ids.add(item["id"])
 
-    # show both categories
     new_matches.sort(key=lambda x: x.get("price", 0))
     seen_matches.sort(key=lambda x: x.get("price", 0))
 
@@ -53,6 +60,7 @@ def main():
             send_email(new_matches)
 
     save_seen_ids(seen_ids)
+
 
 if __name__ == "__main__":
     main()
