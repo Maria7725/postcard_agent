@@ -7,7 +7,6 @@ from email_notifier import send_email
 
 TEST_EMAIL_ALREADY_SEEN = False
 
-
 def main():
     print("Postcard agent starting...")
 
@@ -22,7 +21,7 @@ def main():
     # 2) Aggregate and deduplicate results by item id
     aggregated_by_id = {}
     for q in queries:
-        items = search_postcards(q, limit=50)
+        items = search_postcards(q, limit=100)
         print(f"Fetched from eBay for '{q}': {len(items)}")
         for item in items:
             aggregated_by_id[item["id"]] = item

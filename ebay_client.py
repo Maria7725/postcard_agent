@@ -16,9 +16,6 @@ else:
 SHIP_TO_ZIP = os.getenv("EBAY_SHIP_TO_ZIP") 
 SHIP_TO_COUNTRY = os.getenv("EBAY_SHIP_TO_COUNTRY")
 
-print("Ship-to from env:", SHIP_TO_COUNTRY, SHIP_TO_ZIP)
-
-
 def _extract_shipping_cost(item: dict):
     shipping_options = item.get("shippingOptions") or []
     if not shipping_options:
